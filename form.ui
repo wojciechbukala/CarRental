@@ -34,7 +34,7 @@
 	background-color: #2596be;
 }
 #centralWidget{
-	background-color: #000000;
+	background-color: #FFFFFF;
 }
 #Quit{
 	background-color: rgb(83, 84, 84)

@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5 import uic
 from endpoints import *
+import requests
 
 class MyWidget(QWidget):
     def __init__(self):
@@ -11,14 +12,19 @@ class MyWidget(QWidget):
         uic.loadUi("form.ui", self)
         self.show()
         self.Quit.clicked.connect(lambda: quit())
-        self.Connect.clicked.connect(lambda: connect(MyWidget))
+        self.Connect.clicked.connect(lambda: connect(self))
 
 
-def connect(MyWidget):
+def connect(self):
     message = QMessageBox()
     message.setText("Connected!")
     message.exec()
-    MyWidget.DBinfo.setText("cos z bazy danych")
+
+    response = requests.get('http://127.0.0.1:5000/address')
+    data = response.json()
+
+    self.DBinfo.setText(data[0][1])
+
 def main():
     app  = QApplication([])
     widnow  = MyWidget()
