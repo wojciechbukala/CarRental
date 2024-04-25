@@ -11,13 +11,14 @@ class MyWidget(QWidget):
         uic.loadUi("form.ui", self)
         self.show()
         self.Quit.clicked.connect(lambda: quit())
-        self.Connect.clicked.connect(lambda: )
+        self.Connect.clicked.connect(lambda: connect(MyWidget))
 
 
-def connect():
+def connect(MyWidget):
     message = QMessageBox()
     message.setText("Connected!")
     message.exec()
+    MyWidget.DBinfo.setText("cos z bazy danych")
 def main():
     app  = QApplication([])
     widnow  = MyWidget()

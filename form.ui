@@ -105,6 +105,7 @@
       <font>
        <family>Toppan Bunkyu Midashi Gothic</family>
        <pointsize>25</pointsize>
+       <bold>false</bold>
       </font>
      </property>
      <property name="text">
@@ -175,10 +176,29 @@
      <font>
       <family>.AppleSystemUIFont</family>
       <pointsize>18</pointsize>
+      <bold>false</bold>
      </font>
     </property>
     <property name="text">
      <string>Quit the app by clicking Quit button.</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="DBinfo">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>200</y>
+      <width>391</width>
+      <height>101</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>18</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string/>
     </property>
    </widget>
   </widget>
