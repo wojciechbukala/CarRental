@@ -272,8 +272,8 @@ class Ui_Form(object):
             # print("Logging in!")
 
     def on_createAccountBtn_clicked(self):
-        firstname = self.lineEdit_6.text()
-        lastname = self.lineEdit_7.text()
+        firstname = self.lineEdit_7.text()
+        lastname = self.lineEdit_6.text()
         password = self.lineEdit_4.text()
         email = self.lineEdit_3.text()
         if((firstname!="")&(lastname!="")&(email!="")&(password!="")):
