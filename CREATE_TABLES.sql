@@ -10,8 +10,8 @@ DROP TABLE IF EXISTS public."Segment";
 CREATE TABLE IF NOT EXISTS public."Address"
 (
     "AddressID" SERIAL PRIMARY KEY,
-    "Address1" character varying(50) COLLATE pg_catalog."default",
-    "Address2" character varying(50) COLLATE pg_catalog."default",
+    "Address1" character varying(40) COLLATE pg_catalog."default",
+    "Address2" character varying(40) COLLATE pg_catalog."default",
     "PostalCode" character varying(6) COLLATE pg_catalog."default",
     "City" character varying(50) COLLATE pg_catalog."default",
     "Country" character varying(50) COLLATE pg_catalog."default",
@@ -25,9 +25,10 @@ ALTER TABLE IF EXISTS public."Address"
 CREATE TABLE IF NOT EXISTS public."Customer"
 (
     "CustomerID" SERIAL PRIMARY KEY,
-    "FirstName" "char"[],
-    "LastName" "char"[],
-    "Email" "char"[],
+    "FirstName" character varying(40),
+    "LastName" character varying(40),
+    "Email" character varying(40),
+	"Password" character varying(100),
     "AddressID" integer,
     "CreateDate" date,
     CONSTRAINT fk_address FOREIGN KEY ("AddressID")

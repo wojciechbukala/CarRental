@@ -20,8 +20,15 @@ def get_cars():
 
 @app.route("/customer", methods=["GET"])
 def get_customer():
-    db.cursor.execute(f"SELECT * FROM public.\"Customer\"")
+    email = request.args.get("email", default="%")
+    password = request.args.get("password", default="%")
+    db.cursor.execute(f"""SELECT * FROM public.\"Customer\"
+        WHERE \"Email\" LIKE \'{email}\' AND \"Password\" LIKE \'{password}\'""")
     customer = db.cursor.fetchall()
+
+    if not customer:  # Jeśli nie znaleziono customera
+        return jsonify({"message": "No customer found with the specified email"}), 404
+    
     return jsonify(customer)
 
 @app.route("/payment", methods=["GET"])
@@ -60,8 +67,8 @@ def add_address():
     phone_number = data.get("PhoneNumber")
 
     db.cursor.execute(f"""INSERT INTO public.\"Address\"(
-        \"AddressID\", \"Address1\", \"Address2\", \"PostalCode\", \"City\", \"Country\", \"PhoneNumber\")
-        VALUES ({address_id}, \'{address1}\', \'{address2}\', \'{postal_code}\', \'{city}\', \'{country}\', \'{phone_number}\');""")
+        \"Address1\", \"Address2\", \"PostalCode\", \"City\", \"Country\", \"PhoneNumber\")
+        VALUES (\'{address1}\', \'{address2}\', \'{postal_code}\', \'{city}\', \'{country}\', \'{phone_number}\');""")
 
     db.conn.commit()
 
@@ -79,30 +86,31 @@ def add_car():
     segment_id = data.get("SegmanetID")
 
     db.cursor.execute(f"""INSERT INTO public.\"Car\"(
-        \"CarID\", \"Brand\", \"YearOfProduction\", \"Color\", \"Insurance\", \"Diagnostics\", \"SegmentID\")
-        VALUES ({car_id}, \'{brand}\', {year_of_production}, \'{color}\', {insurance}, {diagnostics}, {segment_id});""")
+        \"Brand\", \"YearOfProduction\", \"Color\", \"Insurance\", \"Diagnostics\", \"SegmentID\")
+        VALUES (\'{brand}\', {year_of_production}, \'{color}\', {insurance}, {diagnostics}, {segment_id});""")
 
     db.conn.commit()
 
     return jsonify({"message": "Car added successfully"})
 
 @app.route("/add_customer", methods=["POST"])
-def add_car():
+def add_customer():
     data = request.json
     customer_id = data.get("CustomerID")
     first_name = data.get("FirstName")
     last_name = data.get("LastName")
     email = data.get("Email")
+    password = data.get("Password")
     address_id = data.get("AddressID")
     create_date = data.get("CreateDate")
 
     db.cursor.execute(f"""INSERT INTO public.\"Customer\"(
-        \"CustomerID\", \"FirstName\", \"LastName\", \"Email\", \"AddressID\", \"CreateDate\")
-        VALUES ({customer_id}, \'{first_name}\', {last_name}, \'{email}\', {address_id}, {create_date});""")
+        \"FirstName\", \"LastName\", \"Email\", \"Password\", \"CreateDate\")
+        VALUES (\'{first_name}\', \'{last_name}\', \'{email}\', \'{password}\', \'{create_date}\');""")
 
     db.conn.commit()
 
-    return jsonify({"message": "Customer added successfully"})
+    return jsonify({"message": "Customer  added successfully"})
 
 if __name__ == "__main__":
     app.run(debug=True)
