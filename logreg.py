@@ -278,6 +278,7 @@ class Ui_Form(object):
         email = self.lineEdit_3.text()
         if((firstname!="")&(lastname!="")&(email!="")&(password!="")):
             register(firstname, lastname, email, password)
+
         # POST user(
         #   VALUES:
         #   username = username,

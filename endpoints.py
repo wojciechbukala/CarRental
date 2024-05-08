@@ -68,11 +68,14 @@ def add_address():
 
     db.cursor.execute(f"""INSERT INTO public.\"Address\"(
         \"Address1\", \"Address2\", \"PostalCode\", \"City\", \"Country\", \"PhoneNumber\")
-        VALUES (\'{address1}\', \'{address2}\', \'{postal_code}\', \'{city}\', \'{country}\', \'{phone_number}\');""")
+        VALUES (\'{address1}\', \'{address2}\', \'{postal_code}\', \'{city}\', \'{country}\', \'{phone_number}\')
+        RETURNING \"AddressID\";""")
+    
+    new_id = db.cursor.fetchone()[0]
 
     db.conn.commit()
 
-    return jsonify({"message": "Address added successfully"})
+    return jsonify({"message": "Address added successfully", "AddressID": new_id})
 
 @app.route("/add_car", methods=["POST"])
 def add_car():
@@ -111,6 +114,19 @@ def add_customer():
     db.conn.commit()
 
     return jsonify({"message": "Customer  added successfully"})
+
+@app.route("/add_customer_address", methods=["POST"])
+def add_customer_address():
+    data = request.json
+    address_id = data.get("AddressID")
+    customer_id = request.args.get("customer_id")
+
+    db.cursor.execute(f"UPDATE public.\"Customer\" SET \"AddressID\" = {address_id} WHERE \"CustomerID\" = {customer_id}")
+
+    db.conn.commit()
+
+    return jsonify({"message": "AddressID upadated"})
+
 
 if __name__ == "__main__":
     app.run(debug=True)
