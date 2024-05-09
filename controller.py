@@ -40,10 +40,10 @@ def login(email, password):
     response = requests.get(url)
 
     if response.status_code == 200:
-        print("You are logged in")
         user_email = email
+        return 0
     else:
-        print("Error")
+        return 1
 
 def register_new_car():
     url_car = 'http://127.0.0.1:5000/add_car'

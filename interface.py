@@ -58,7 +58,7 @@ class Ui_MainWindow(object):
 "    border-radius: 20px;\n"
 "}\n"
 "#moreClientsBtn{\n"
-"    background-color: # ;\n"
+"    background-color: #2596be;\n"
 "    border-radius: 10px;\n"
 "}\n"
 "#accountBtn{\n"

@@ -10,6 +10,11 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from controller import *
+from addresDialog import *
+from PyQt5.QtCore import Qt
+# from PyQt5.QtGui import QMouseEvent
+from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
 
 class Ui_Form(object):
     def setupUi(self, Form):
@@ -235,9 +240,7 @@ class Ui_Form(object):
         self.horizontalLayout.addWidget(self.reg)
         self.verticalLayout.addWidget(self.widget)
 
-        # connecting signals to slots
-        self.loginBtn.clicked.connect(self.on_loginBtn_clicked)
-        self.createAccountBtn.clicked.connect(self.on_createAccountBtn_clicked)
+
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
@@ -259,28 +262,32 @@ class Ui_Form(object):
         self.label_6.setText(_translate("Form", "Confirm password"))
         self.createAccountBtn.setText(_translate("Form", "Create account"))
 
-    def on_loginBtn_clicked(self):
-        password = self.lineEdit_2.text()
-        email = self.lineEdit.text()
-        if(password != "" and email != ""):
-            login(email, password)
-            # GET user where user.username == username
-            # if user.password == password:
-            #   login()
-            # else: 
-            #   ERROR
-            # print("Logging in!")
-
-    def on_createAccountBtn_clicked(self):
-        firstname = self.lineEdit_7.text()
-        lastname = self.lineEdit_6.text()
-        password = self.lineEdit_4.text()
-        email = self.lineEdit_3.text()
-        if((firstname!="")&(lastname!="")&(email!="")&(password!="")):
-            register(firstname, lastname, email, password)
-
+    
         # POST user(
         #   VALUES:
         #   username = username,
         #   password = password )
             # print("Registered!")
+class addressDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.ui = Ui_Dialog()    
+        self.ui.setupUi(self)
+    address1=""
+    address2=""
+    postal_code=""
+    city=""
+    country=""
+    phone_number=""
+    # def uploadAddress(email, self):
+
+        # register_address(email, address1, address2, postal_code, city, country, phone_number)
+    def returnAddress(self):
+        self.address1 = self.ui.lineEdit.text()
+        self.address2 = self.ui.lineEdit_2.text()
+        self.postal_code = self.ui.lineEdit_3.text()
+        self.city = self.ui.lineEdit_4.text()
+        self.country = self.ui.lineEdit_5.text()
+        self.phone_number = self.ui.lineEdit_6.text()
+        return [self.address1, self.address2, self.postal_code, self.city, self.country, self.phone_number]
+
