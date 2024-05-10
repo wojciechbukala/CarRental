@@ -6,6 +6,7 @@ app = Flask(__name__)
 
 db = db_conn.Database(dbname = "CarRental", user = "postgres", password = "postgres_pass")
 
+
 @app.route("/address", methods=["GET"])
 def get_addresses():
     db.cursor.execute(f"SELECT * FROM public.\"Address\"")
@@ -16,6 +17,16 @@ def get_addresses():
 def get_cars():
     db.cursor.execute(f"SELECT * FROM public.\"Car\"")
     cars = db.cursor.fetchall()
+    return jsonify(cars)
+
+@app.route("/get_car_by_model", methods=["GET"])
+def get_car_by_model():
+    brand = request.args.get("brand")
+    model = request.args.get("model")
+    db.cursor.execute(f"""SELECT * FROM public.\"Car\" 
+    WHERE \"Brand\" = \'{brand}\' AND \"Model\" = \'{model}\' 
+    LIMIT 1;""")
+    cars = db.cursor.fetchone()
     return jsonify(cars)
 
 @app.route("/customer", methods=["GET"])
@@ -40,6 +51,26 @@ def get_payment():
 @app.route("/rental", methods=["GET"])
 def get_rental():
     db.cursor.execute(f"SELECT * FROM public.\"Rental\"")
+    rental = db.cursor.fetchall()
+    return jsonify(rental)
+
+@app.route("/rental_all", methods=["GET"])
+def get_all_rentals():
+    db.cursor.execute(f"""SELECT \"RentalID\", \"RentalDate\", \"ReturnDate\",
+    \"FirstName\", \"LastName\", \"Brand\", \"Model\"
+    FROM public.\"Rental\"
+    LEFT JOIN \"Customer\" ON \"Rental\".\"CustomerID\" = \"Customer\".\"CustomerID\"
+    LEFT JOIN \"Car\" ON \"Rental\".\"CarID\" = \"Car\".\"CarID\"""")
+    rental = db.cursor.fetchall()
+    return jsonify(rental)
+
+@app.route("/rental_by_customer_id", methods=["GET"])
+def get_rental_by_cutomer_id():
+    customer_id = request.args.get("customer_id")
+    db.cursor.execute(f"""SELECT \"RentalDate\", \"ReturnDate\", \"Brand\", \"Model\"
+	FROM public.\"Rental\"
+	LEFT JOIN public.\"Car\" ON \"Car\".\"CarID\" = \"Rental\".\"CarID\" 
+    WHERE \"CustomerID\"={customer_id}""")
     rental = db.cursor.fetchall()
     return jsonify(rental)
 
@@ -127,7 +158,24 @@ def add_customer_address():
 
     return jsonify({"message": "AddressID upadated"})
 
+@app.route("/add_new_rental", methods=["POST"])
+def add_new_rental():
+    data = request.json
+
+    rental_date = data.get("RentalDate")
+    return_date = data.get("ReturnDate")
+    car_id = data.get("CarID")
+    customer_id = data.get("CustomerID")
+
+    db.cursor.execute(f"""INSERT INTO public.\"Rental\"(
+	\"RentalDate\", \"ReturnDate\", \"CarID\", \"CustomerID\")
+	VALUES (\'{rental_date}\', \'{return_date}\', {car_id}, {customer_id});""")
+
+    db.conn.commit()
+
+    return jsonify({"message": "New reantal added"})
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 

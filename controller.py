@@ -2,6 +2,10 @@ import endpoints
 import requests
 from datetime import date
 
+# zmienne lokalne z obecnie zalogowanym użytkownikiem
+logged_id = 0
+logged_email = "None"
+
 def md5(password):
     pass
 
@@ -40,7 +44,10 @@ def login(email, password):
     response = requests.get(url)
 
     if response.status_code == 200:
-        user_email = email
+        global logged_email
+        logged_email = email
+        global logged_id
+        logged_id = response.json()[0][0]
         return 0
     else:
         return 1
@@ -51,7 +58,6 @@ def register_new_car():
 def register_address(email, address1, address2, postal_code, city, country, phone_number):
     
     customer_id = get_customer_by_email(email)[1][0][0]
-    print(customer_id)
     
     data_address = {
         "Address1": f"{address1}",
@@ -75,6 +81,45 @@ def register_address(email, address1, address2, postal_code, city, country, phon
     else:
         print("Error adding address")
 
+# functions under can be used only after logging in
+
+def rent_a_car(rental_start, rental_end, car_brand, car_model):
+    url_get_car = f"http://127.0.0.1:5000/get_car_by_model?brand={car_brand}&model={car_model}"
+    response1 = requests.get(url_get_car)
+    car_id = response1.json()[0]
+
+    data_rental = {
+        "RentalDate": f"{rental_start}",
+        "ReturnDate": f"{rental_end}",
+        "CarID": f"{car_id}",
+        "CustomerID": f"{logged_id}"
+    }
+
+    url_rent_a_car = 'http://127.0.0.1:5000/add_new_rental'
+    response2 = requests.post(url_rent_a_car, json = data_rental)
+
+def get_rentals_logged_cutomer():
+    url_rentals = f'http://127.0.0.1:5000/rental_by_customer_id?customer_id={logged_id}'
+    response = requests.get(url_rentals)
+    print(response.json())
+    return response.json()
+
+# functions under can be used only by staff
+
+def get_all_rentals():
+    url_all_rentals = f'http://127.0.0.1:5000/rental_all'
+    response = requests.get(url_all_rentals)
+    print(response.json())
+
+
+
+
+login("wojciech_bukala@outlook.com", "wojtek123")
+#rent_a_car('2024-05-09', '2024-05-11', 'Toyota', 'Camry')
+#get_rentals_logged_cutomer()
+get_all_rentals()
+#print(logged_email)
+#print(logged_id)
 #register_address("wojciech_bukala@outlook.com", "Wittiga", "6", "53-514", "Wroclaw", "Poland", "728866324")
 #register("piotr", "omiecina", "piotr.omiecina@gmail.com", "piotr123")
 #register("Wojciech", "Bukala", "wojciech_bukala@outlook.com", "wojtek123")
