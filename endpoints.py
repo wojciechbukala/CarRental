@@ -29,6 +29,13 @@ def get_car_by_model():
     cars = db.cursor.fetchone()
     return jsonify(cars)
 
+@app.route("/get_available_cars", methods=["GET"])
+def get_available_cars():
+    db.cursor.execute("""SELECT \"Model\", \"Brand\" FROM public.\"Car\"
+    WHERE \"Insurance\" <> \'False\' AND \"Diagnostics\" <> \'False\'""")
+    cars = db.cursor.fetchall()
+    return jsonify(cars)
+
 @app.route("/customer", methods=["GET"])
 def get_customer():
     email = request.args.get("email", default="%")
@@ -173,7 +180,29 @@ def add_new_rental():
 
     db.conn.commit()
 
-    return jsonify({"message": "New reantal added"})
+    return jsonify({"message": "New rental added"})
+
+@app.route("/update_insurance", methods=["POST"])
+def update_insurance():
+    new_status = request.args.get("new_status", default="True")
+    car_id = request.args.get("car_id")
+
+    db.cursor.execute(f"UPDATE public.\"Car\" SET \"Insurance\" = \'{new_status}\' WHERE \"CarID\" = {car_id}")
+
+    db.conn.commit()
+
+    return jsonify({"message": "Insurance status updated"})
+
+@app.route("/update_diagnostics", methods=["POST"])
+def update_diagnostics():
+    new_status = request.args.get("new_status", default="True")
+    car_id = request.args.get("car_id")
+
+    db.cursor.execute(f"UPDATE public.\"Car\" SET \"Diagnostics\" = \'{new_status}\' WHERE \"CarID\" = {car_id}")
+
+    db.conn.commit()
+
+    return jsonify({"message": "Diagnostics status updated"})
 
 if __name__ == "__main__":
     app.run(debug=True)

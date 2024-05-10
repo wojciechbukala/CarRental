@@ -1,5 +1,5 @@
 INSERT INTO public."Car"(
-	"CarID", "Brand", "Model", "YearOfProduction", "Color", "Insurance", "Dignostics", "SegmentID")
+	"CarID", "Brand", "Model", "YearOfProduction", "Color", "Insurance", "Diagnostics", "SegmentID")
 	VALUES (1, 'Peugot', '208', '2022-01-01', 'Red', TRUE, TRUE, 2),
 	(2, 'Seat', 'Leon', '2023-01-01', 'White', TRUE, TRUE, 3),
 	(3, 'Toyota', 'Corolla', '2024-01-01', 'Black', TRUE, TRUE, 3),

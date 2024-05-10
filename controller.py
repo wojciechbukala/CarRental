@@ -83,6 +83,11 @@ def register_address(email, address1, address2, postal_code, city, country, phon
 
 # functions under can be used only after logging in
 
+def get_available_cars():
+    url_get_available_cars = f'http://127.0.0.1:5000/get_available_cars'
+    response = requests.get(url_get_available_cars)
+    print(response.json())
+
 def rent_a_car(rental_start, rental_end, car_brand, car_model):
     url_get_car = f"http://127.0.0.1:5000/get_car_by_model?brand={car_brand}&model={car_model}"
     response1 = requests.get(url_get_car)
@@ -111,13 +116,25 @@ def get_all_rentals():
     response = requests.get(url_all_rentals)
     print(response.json())
 
+# new_stauts 'True' or 'False' (do not use (0,1))
+def flag_insurance(new_status, car_id):
+    url_flag_insurance = f'http://127.0.0.1:5000/update_insurance?new_status={new_status}&car_id={car_id}'
+    response = requests.post(url_flag_insurance)
+
+def flag_diagnostics(new_status, car_id):
+    url_flag_diagnostics = f'http://127.0.0.1:5000/update_diagnostics?new_status={new_status}&car_id={car_id}'
+    response = requests.post(url_flag_diagnostics)
 
 
 
-login("wojciech_bukala@outlook.com", "wojtek123")
+
+#login("jan.kowalski@gmail.com", "jan123")
+#get_available_cars()
+#flag_insurance('False', 3)
+#flag_diagnostics('False', 3)
 #rent_a_car('2024-05-09', '2024-05-11', 'Toyota', 'Camry')
 #get_rentals_logged_cutomer()
-get_all_rentals()
+#get_all_rentals()
 #print(logged_email)
 #print(logged_id)
 #register_address("wojciech_bukala@outlook.com", "Wittiga", "6", "53-514", "Wroclaw", "Poland", "728866324")
