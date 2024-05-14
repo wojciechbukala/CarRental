@@ -57,10 +57,11 @@ CREATE TABLE IF NOT EXISTS public."Car"
 (
     "CarID" SERIAL PRIMARY KEY,
     "Brand" character varying(16) COLLATE pg_catalog."default",
+	"Model" character varying(16) COLLATE pg_catalog."default",
     "YearOfProduction" date,
     "Color" character varying(16) COLLATE pg_catalog."default",
     "Insurance" boolean,
-    "Dignostics" boolean,
+    "Diagnostics" boolean,
     "SegmentID" smallint,
     CONSTRAINT fk_segment FOREIGN KEY ("SegmentID")
         REFERENCES public."Segment" ("SegmentID") MATCH SIMPLE

@@ -29,10 +29,23 @@ def get_car_by_model():
     cars = db.cursor.fetchone()
     return jsonify(cars)
 
+# @app.route("/get_available_cars", methods=["GET"])
+# def get_available_cars():
+#     db.cursor.execute("""SELECT \"Model\", \"Brand\" FROM public.\"Car\"
+#     WHERE \"Insurance\" <> \'False\' AND \"Diagnostics\" <> \'False\'""")
+#     cars = db.cursor.fetchall()
+#     return jsonify(cars)
+
 @app.route("/get_available_cars", methods=["GET"])
 def get_available_cars():
-    db.cursor.execute("""SELECT \"Model\", \"Brand\" FROM public.\"Car\"
-    WHERE \"Insurance\" <> \'False\' AND \"Diagnostics\" <> \'False\'""")
+    start_date = request.args.get("start_date")
+    end_date = request.args.get("end_date")
+    db.cursor.execute(f"""SELECT \"Model\", \"Brand\" FROM public.\"Car\"
+    WHERE (\"Insurance\" <> \'False\' AND \"Diagnostics\" <> \'False\')
+    AND \"CarID\" NOT IN (SELECT \"CarID\" FROM public.\"Rental\"
+    WHERE (\"RentalDate\" <= \'{end_date}\' AND \"ReturnDate\" >= \'{start_date}\')
+    OR (\"RentalDate\" <= \'{start_date}\' AND \"ReturnDate\" >= \'{start_date}\')
+    OR (\"RentalDate\" >= \'{start_date}\' AND \"ReturnDate\" <= \'{end_date}\'))""")
     cars = db.cursor.fetchall()
     return jsonify(cars)
 

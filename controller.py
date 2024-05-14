@@ -83,10 +83,10 @@ def register_address(email, address1, address2, postal_code, city, country, phon
 
 # functions under can be used only after logging in
 
-def get_available_cars():
-    url_get_available_cars = f'http://127.0.0.1:5000/get_available_cars'
+def get_available_cars(start_date = '2100-12-31', end_date = '2000-01-01'):
+    url_get_available_cars = f'http://127.0.0.1:5000/get_available_cars?start_date={start_date}&end_date={end_date}'
     response = requests.get(url_get_available_cars)
-    print(response.json())
+    return(response.json())
 
 def rent_a_car(rental_start, rental_end, car_brand, car_model):
     url_get_car = f"http://127.0.0.1:5000/get_car_by_model?brand={car_brand}&model={car_model}"
@@ -128,11 +128,12 @@ def flag_diagnostics(new_status, car_id):
 
 
 
-#login("jan.kowalski@gmail.com", "jan123")
-#get_available_cars()
+login("jan.kowalski@gmail.com", "jan123")
+get_available_cars('2024-05-07', '2024-05-10')
 #flag_insurance('False', 3)
 #flag_diagnostics('False', 3)
 #rent_a_car('2024-05-09', '2024-05-11', 'Toyota', 'Camry')
+#rent_a_car('2024-05-12', '2024-05-14', 'Toyota', 'Camry')
 #get_rentals_logged_cutomer()
 #get_all_rentals()
 #print(logged_email)
