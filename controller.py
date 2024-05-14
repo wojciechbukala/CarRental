@@ -126,10 +126,10 @@ def flag_diagnostics(new_status, car_id):
 
 
 
-login("jan.kowalski@gmail.com", "jan123")
-available_cars = get_available_cars()
-for car in available_cars:
-    print(car)
+#login("jan.kowalski@gmail.com", "jan123")
+# available_cars = get_available_cars()
+# for car in available_cars:
+#     print(car)
 #flag_insurance('False', 3)
 #flag_diagnostics('False', 3)
 #rent_a_car('2024-05-09', '2024-05-11', 'Toyota', 'Camry')
