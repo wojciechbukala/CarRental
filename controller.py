@@ -86,13 +86,13 @@ def register_address(email, address1, address2, postal_code, city, country, phon
 def get_available_cars():
     url_get_available_cars = f'http://127.0.0.1:5000/get_available_cars'
     response = requests.get(url_get_available_cars)
-    print(response.json())
+    # print(response.json())
+    return response.json()
 
 def rent_a_car(rental_start, rental_end, car_brand, car_model):
     url_get_car = f"http://127.0.0.1:5000/get_car_by_model?brand={car_brand}&model={car_model}"
     response1 = requests.get(url_get_car)
     car_id = response1.json()[0]
-
     data_rental = {
         "RentalDate": f"{rental_start}",
         "ReturnDate": f"{rental_end}",

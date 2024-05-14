@@ -31,7 +31,7 @@ def get_car_by_model():
 
 @app.route("/get_available_cars", methods=["GET"])
 def get_available_cars():
-    db.cursor.execute("""SELECT \"Model\", \"Brand\" FROM public.\"Car\"
+    db.cursor.execute("""SELECT \"Model\", \"Brand\", \"YearOfProduction\" FROM public.\"Car\"
     WHERE \"Insurance\" <> \'False\' AND \"Diagnostics\" <> \'False\'""")
     cars = db.cursor.fetchall()
     return jsonify(cars)

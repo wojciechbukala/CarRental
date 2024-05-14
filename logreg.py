@@ -103,6 +103,11 @@ class Ui_Form(object):
         self.verticalLayout_4.addWidget(self.pushButton_3)
         spacerItem1 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_4.addItem(spacerItem1)
+        self.staffLoginBtn = QtWidgets.QPushButton(self.log)
+        self.staffLoginBtn.setObjectName("staffLoginBtn")
+        self.staffLoginBtn.setFlat(True)
+        self.staffLoginBtn.setCheckable(True)
+        self.verticalLayout_4.addWidget(self.staffLoginBtn)
         self.horizontalLayout.addWidget(self.log)
         self.widget_2 = QtWidgets.QWidget(self.widget)
         self.widget_2.setObjectName("widget_2")
@@ -252,6 +257,7 @@ class Ui_Form(object):
         self.label_7.setText(_translate("Form", "E-mail"))
         self.label_8.setText(_translate("Form", "Password"))
         self.loginBtn.setText(_translate("Form", "Login"))
+        self.staffLoginBtn.setText(_translate("Form", "Staff login"))
         self.pushButton_3.setText(_translate("Form", "Forgot password?"))
         self.label_3.setText(_translate("Form", "OR"))
         self.label_2.setText(_translate("Form", "REGISTER"))
@@ -261,13 +267,7 @@ class Ui_Form(object):
         self.label_5.setText(_translate("Form", "Password"))
         self.label_6.setText(_translate("Form", "Confirm password"))
         self.createAccountBtn.setText(_translate("Form", "Create account"))
-
     
-        # POST user(
-        #   VALUES:
-        #   username = username,
-        #   password = password )
-            # print("Registered!")
 class addressDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -279,9 +279,7 @@ class addressDialog(QDialog):
     city=""
     country=""
     phone_number=""
-    # def uploadAddress(email, self):
 
-        # register_address(email, address1, address2, postal_code, city, country, phone_number)
     def returnAddress(self):
         self.address1 = self.ui.lineEdit.text()
         self.address2 = self.ui.lineEdit_2.text()
