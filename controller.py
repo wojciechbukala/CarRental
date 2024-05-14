@@ -86,7 +86,7 @@ def register_address(email, address1, address2, postal_code, city, country, phon
 def get_available_cars(start_date = '2100-12-31', end_date = '2000-01-01'):
     url_get_available_cars = f'http://127.0.0.1:5000/get_available_cars?start_date={start_date}&end_date={end_date}'
     response = requests.get(url_get_available_cars)
-    print(response.json())
+    return response.json()
 
 def rent_a_car(rental_start, rental_end, car_brand, car_model):
     url_get_car = f"http://127.0.0.1:5000/get_car_by_model?brand={car_brand}&model={car_model}"
@@ -105,7 +105,6 @@ def rent_a_car(rental_start, rental_end, car_brand, car_model):
 def get_rentals_logged_cutomer():
     url_rentals = f'http://127.0.0.1:5000/rental_by_customer_id?customer_id={logged_id}'
     response = requests.get(url_rentals)
-    print(response.json())
     return response.json()
 
 # functions under can be used only by staff
@@ -113,7 +112,7 @@ def get_rentals_logged_cutomer():
 def get_all_rentals():
     url_all_rentals = f'http://127.0.0.1:5000/rental_all'
     response = requests.get(url_all_rentals)
-    print(response.json())
+    return response.json()
 
 # new_stauts 'True' or 'False' (do not use (0,1))
 def flag_insurance(new_status, car_id):
@@ -128,7 +127,9 @@ def flag_diagnostics(new_status, car_id):
 
 
 login("jan.kowalski@gmail.com", "jan123")
-get_available_cars('2024-05-07', '2024-05-10')
+available_cars = get_available_cars()
+for car in available_cars:
+    print(car)
 #flag_insurance('False', 3)
 #flag_diagnostics('False', 3)
 #rent_a_car('2024-05-09', '2024-05-11', 'Toyota', 'Camry')

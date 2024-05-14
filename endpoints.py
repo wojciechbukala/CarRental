@@ -40,7 +40,9 @@ def get_car_by_model():
 def get_available_cars():
     start_date = request.args.get("start_date")
     end_date = request.args.get("end_date")
-    db.cursor.execute(f"""SELECT \"Model\", \"Brand\" FROM public.\"Car\"
+    db.cursor.execute(f"""SELECT \"Model\", \"Brand\", \"YearOfProduction\", \"PricePerHour\",
+    FROM public.\"Car\"
+    LEFT JOIN \"Segment\" ON \"Segment\".\"SegmentID\" = \"Car\".\"SegmentID\"
     WHERE (\"Insurance\" <> \'False\' AND \"Diagnostics\" <> \'False\')
     AND \"CarID\" NOT IN (SELECT \"CarID\" FROM public.\"Rental\"
     WHERE (\"RentalDate\" <= \'{end_date}\' AND \"ReturnDate\" >= \'{start_date}\')
