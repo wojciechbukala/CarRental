@@ -125,7 +125,7 @@ def flag_diagnostics(new_status, car_id):
 
 
 
-
+#get_available_cars()
 #login("jan.kowalski@gmail.com", "jan123")
 # available_cars = get_available_cars()
 # for car in available_cars:
