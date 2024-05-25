@@ -4,29 +4,35 @@ import requests
 
 app = Flask(__name__)
 
-db = db_conn.Database(dbname = "CarRental", user = "postgres", password = "postgres_pass")
+#db = db_conn.Database(dbname = "CarRental", user = "postgres", password = "postgres_pass")
+
+#connection with master
+db_m = db_conn.Database(dbname = "postgresdb", user = "postgresadmin", password = "admin123", port=5001)
+
+#connection with slave
+db_s = db_conn.Database(dbname = "postgresdb", user = "postgresadmin", password = "admin123", port=5002)
 
 
 @app.route("/address", methods=["GET"])
 def get_addresses():
-    db.cursor.execute(f"SELECT * FROM public.\"Address\"")
-    addresses = db.cursor.fetchall()
+    db_s.cursor.execute(f"SELECT * FROM public.\"Address\"")
+    addresses = db_s.cursor.fetchall()
     return jsonify(addresses)
 
 @app.route("/car", methods=["GET"])
 def get_cars():
-    db.cursor.execute(f"SELECT * FROM public.\"Car\"")
-    cars = db.cursor.fetchall()
+    db_s.cursor.execute(f"SELECT * FROM public.\"Car\"")
+    cars = db_s.cursor.fetchall()
     return jsonify(cars)
 
 @app.route("/get_car_by_model", methods=["GET"])
 def get_car_by_model():
     brand = request.args.get("brand")
     model = request.args.get("model")
-    db.cursor.execute(f"""SELECT * FROM public.\"Car\" 
+    db_s.cursor.execute(f"""SELECT * FROM public.\"Car\" 
     WHERE \"Brand\" = \'{brand}\' AND \"Model\" = \'{model}\' 
     LIMIT 1;""")
-    cars = db.cursor.fetchone()
+    cars = db_s.cursor.fetchone()
     return jsonify(cars)
 
 # @app.route("/get_available_cars", methods=["GET"])
@@ -40,7 +46,7 @@ def get_car_by_model():
 def get_available_cars():
     start_date = request.args.get("start_date")
     end_date = request.args.get("end_date")
-    db.cursor.execute(f"""SELECT \"Model\", \"Brand\", \"YearOfProduction\", \"PricePerHour\"
+    db_s.cursor.execute(f"""SELECT \"Model\", \"Brand\", \"YearOfProduction\", \"PricePerHour\"
     FROM public.\"Car\"
     LEFT JOIN \"Segment\" ON \"Segment\".\"SegmentID\" = \"Car\".\"SegmentID\"
     WHERE (\"Insurance\" <> \'False\' AND \"Diagnostics\" <> \'False\')
@@ -48,16 +54,16 @@ def get_available_cars():
     WHERE (\"RentalDate\" <= \'{end_date}\' AND \"ReturnDate\" >= \'{start_date}\')
     OR (\"RentalDate\" <= \'{start_date}\' AND \"ReturnDate\" >= \'{start_date}\')
     OR (\"RentalDate\" >= \'{start_date}\' AND \"ReturnDate\" <= \'{end_date}\'))""")
-    cars = db.cursor.fetchall()
+    cars = db_s.cursor.fetchall()
     return jsonify(cars)
 
 @app.route("/customer", methods=["GET"])
 def get_customer():
     email = request.args.get("email", default="%")
     password = request.args.get("password", default="%")
-    db.cursor.execute(f"""SELECT * FROM public.\"Customer\"
+    db_s.cursor.execute(f"""SELECT * FROM public.\"Customer\"
         WHERE \"Email\" LIKE \'{email}\' AND \"Password\" LIKE \'{password}\'""")
-    customer = db.cursor.fetchall()
+    customer = db_s.cursor.fetchall()
 
     if not customer:  # Jeśli nie znaleziono customera
         return jsonify({"message": "No customer found with the specified email"}), 404
@@ -66,46 +72,46 @@ def get_customer():
 
 @app.route("/payment", methods=["GET"])
 def get_payment():
-    db.cursor.execute(f"SELECT * FROM public.\"Payment\"")
-    payment = db.cursor.fetchall()
+    db_s.cursor.execute(f"SELECT * FROM public.\"Payment\"")
+    payment = db_s.cursor.fetchall()
     return jsonify(payment)
 
 @app.route("/rental", methods=["GET"])
 def get_rental():
-    db.cursor.execute(f"SELECT * FROM public.\"Rental\"")
-    rental = db.cursor.fetchall()
+    db_s.cursor.execute(f"SELECT * FROM public.\"Rental\"")
+    rental = db_s.cursor.fetchall()
     return jsonify(rental)
 
 @app.route("/rental_all", methods=["GET"])
 def get_all_rentals():
-    db.cursor.execute(f"""SELECT \"RentalID\", \"RentalDate\", \"ReturnDate\",
+    db_s.cursor.execute(f"""SELECT \"RentalID\", \"RentalDate\", \"ReturnDate\",
     \"FirstName\", \"LastName\", \"Brand\", \"Model\"
     FROM public.\"Rental\"
     LEFT JOIN \"Customer\" ON \"Rental\".\"CustomerID\" = \"Customer\".\"CustomerID\"
     LEFT JOIN \"Car\" ON \"Rental\".\"CarID\" = \"Car\".\"CarID\"""")
-    rental = db.cursor.fetchall()
+    rental = db_s.cursor.fetchall()
     return jsonify(rental)
 
 @app.route("/rental_by_customer_id", methods=["GET"])
 def get_rental_by_cutomer_id():
     customer_id = request.args.get("customer_id")
-    db.cursor.execute(f"""SELECT \"RentalDate\", \"ReturnDate\", \"Brand\", \"Model\"
+    db_s.cursor.execute(f"""SELECT \"RentalDate\", \"ReturnDate\", \"Brand\", \"Model\"
 	FROM public.\"Rental\"
 	LEFT JOIN public.\"Car\" ON \"Car\".\"CarID\" = \"Rental\".\"CarID\" 
     WHERE \"CustomerID\"={customer_id}""")
-    rental = db.cursor.fetchall()
+    rental = db_s.cursor.fetchall()
     return jsonify(rental)
 
 @app.route("/segment", methods=["GET"])
 def get_segment():
-    db.cursor.execute(f"SELECT * FROM public.\"Segment\"")
-    segment = db.cursor.fetchall()
+    db_s.cursor.execute(f"SELECT * FROM public.\"Segment\"")
+    segment = db_s.cursor.fetchall()
     return jsonify(segment)
 
 @app.route("/staff", methods=["GET"])
 def get_staff():
-    db.cursor.execute(f"SELECT * FROM public.\"Staff\"")
-    staff = db.cursor.fetchall()
+    db_s.cursor.execute(f"SELECT * FROM public.\"Staff\"")
+    staff = db_s.cursor.fetchall()
     return jsonify(staff)
 
 @app.route("/add_address", methods=["POST"])
@@ -119,14 +125,14 @@ def add_address():
     country = data.get("Country")
     phone_number = data.get("PhoneNumber")
 
-    db.cursor.execute(f"""INSERT INTO public.\"Address\"(
+    db_m.cursor.execute(f"""INSERT INTO public.\"Address\"(
         \"Address1\", \"Address2\", \"PostalCode\", \"City\", \"Country\", \"PhoneNumber\")
         VALUES (\'{address1}\', \'{address2}\', \'{postal_code}\', \'{city}\', \'{country}\', \'{phone_number}\')
         RETURNING \"AddressID\";""")
     
     new_id = db.cursor.fetchone()[0]
 
-    db.conn.commit()
+    db_m.conn.commit()
 
     return jsonify({"message": "Address added successfully", "AddressID": new_id})
 
@@ -141,11 +147,11 @@ def add_car():
     dignostics = data.get("Diagnostics")
     segment_id = data.get("SegmanetID")
 
-    db.cursor.execute(f"""INSERT INTO public.\"Car\"(
+    db_m.cursor.execute(f"""INSERT INTO public.\"Car\"(
         \"Brand\", \"YearOfProduction\", \"Color\", \"Insurance\", \"Diagnostics\", \"SegmentID\")
         VALUES (\'{brand}\', {year_of_production}, \'{color}\', {insurance}, {diagnostics}, {segment_id});""")
 
-    db.conn.commit()
+    db_m.conn.commit()
 
     return jsonify({"message": "Car added successfully"})
 
@@ -160,11 +166,11 @@ def add_customer():
     address_id = data.get("AddressID")
     create_date = data.get("CreateDate")
 
-    db.cursor.execute(f"""INSERT INTO public.\"Customer\"(
+    db_m.cursor.execute(f"""INSERT INTO public.\"Customer\"(
         \"FirstName\", \"LastName\", \"Email\", \"Password\", \"CreateDate\")
         VALUES (\'{first_name}\', \'{last_name}\', \'{email}\', \'{password}\', \'{create_date}\');""")
 
-    db.conn.commit()
+    db_m.conn.commit()
 
     return jsonify({"message": "Customer  added successfully"})
 
@@ -174,9 +180,9 @@ def add_customer_address():
     address_id = data.get("AddressID")
     customer_id = request.args.get("customer_id")
 
-    db.cursor.execute(f"UPDATE public.\"Customer\" SET \"AddressID\" = {address_id} WHERE \"CustomerID\" = {customer_id}")
+    db_m.cursor.execute(f"UPDATE public.\"Customer\" SET \"AddressID\" = {address_id} WHERE \"CustomerID\" = {customer_id}")
 
-    db.conn.commit()
+    db_m.conn.commit()
 
     return jsonify({"message": "AddressID upadated"})
 
@@ -189,11 +195,11 @@ def add_new_rental():
     car_id = data.get("CarID")
     customer_id = data.get("CustomerID")
 
-    db.cursor.execute(f"""INSERT INTO public.\"Rental\"(
+    db_m.cursor.execute(f"""INSERT INTO public.\"Rental\"(
 	\"RentalDate\", \"ReturnDate\", \"CarID\", \"CustomerID\")
 	VALUES (\'{rental_date}\', \'{return_date}\', {car_id}, {customer_id});""")
 
-    db.conn.commit()
+    db_m.conn.commit()
 
     return jsonify({"message": "New rental added"})
 
@@ -202,9 +208,9 @@ def update_insurance():
     new_status = request.args.get("new_status", default="True")
     car_id = request.args.get("car_id")
 
-    db.cursor.execute(f"UPDATE public.\"Car\" SET \"Insurance\" = \'{new_status}\' WHERE \"CarID\" = {car_id}")
+    db_m.cursor.execute(f"UPDATE public.\"Car\" SET \"Insurance\" = \'{new_status}\' WHERE \"CarID\" = {car_id}")
 
-    db.conn.commit()
+    db_m.conn.commit()
 
     return jsonify({"message": "Insurance status updated"})
 
@@ -213,9 +219,9 @@ def update_diagnostics():
     new_status = request.args.get("new_status", default="True")
     car_id = request.args.get("car_id")
 
-    db.cursor.execute(f"UPDATE public.\"Car\" SET \"Diagnostics\" = \'{new_status}\' WHERE \"CarID\" = {car_id}")
+    db_m.cursor.execute(f"UPDATE public.\"Car\" SET \"Diagnostics\" = \'{new_status}\' WHERE \"CarID\" = {car_id}")
 
-    db.conn.commit()
+    db_m.conn.commit()
 
     return jsonify({"message": "Diagnostics status updated"})
 
