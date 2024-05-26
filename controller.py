@@ -88,6 +88,16 @@ def get_available_cars(start_date = '2100-12-31', end_date = '2000-01-01'):
     response = requests.get(url_get_available_cars)
     return response.json()
 
+def get_cars_by_segment(segment):
+    url_get_cars = f'http://127.0.0.1:5000/cars_by_segment?segment={segment}'
+    response = requests.get(url_get_cars)
+    return response.json()
+
+def get_available_cars_by_segment(segment, start_date = '2100-12-31', end_date = '2000-01-01'):
+    url_get_available_cars_by_segment = f'http://127.0.0.1:5000/get_available_cars_by_segment?start_date={start_date}&end_date={end_date}&segment={segment}'
+    response = requests.get(url_get_available_cars_by_segment)
+    return response.json()
+
 def rent_a_car(rental_start, rental_end, car_brand, car_model):
     url_get_car = f"http://127.0.0.1:5000/get_car_by_model?brand={car_brand}&model={car_model}"
     response1 = requests.get(url_get_car)
@@ -123,8 +133,8 @@ def flag_diagnostics(new_status, car_id):
     url_flag_diagnostics = f'http://127.0.0.1:5000/update_diagnostics?new_status={new_status}&car_id={car_id}'
     response = requests.post(url_flag_diagnostics)
 
-
-
+get_available_cars_by_segment("'B'")
+#get_cars_by_segment("'B'")
 #get_available_cars()
 #login("jan.kowalski@gmail.com", "jan123")
 # available_cars = get_available_cars()
