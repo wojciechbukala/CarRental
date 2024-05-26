@@ -57,6 +57,33 @@ def get_available_cars():
     cars = db_s.cursor.fetchall()
     return jsonify(cars)
 
+@app.route("/cars_by_segment", methods=["GET"])
+def get_cars_by_segment():
+    segment = request.args.get("segment")
+    db_s.cursor.execute(f"""SELECT \"Brand\", \"Model\", \"YearOfProduction\", \"Color\"
+    FROM public.\"Car\"
+    LEFT JOIN \"Segment\" ON \"Car\".\"SegmentID\" = \"Segment\".\"SegmentID\"
+    WHERE \"Segment\".\"SegmentSign\" = {segment}""")
+    cars = db_s.cursor.fetchall()
+    return jsonify(cars)
+
+@app.route("/get_available_cars_by_segment", methods=["GET"])
+def get_available_cars_by_segment():
+    start_date = request.args.get("start_date")
+    end_date = request.args.get("end_date")
+    segment = request.args.get("segment")
+    db_s.cursor.execute(f"""SELECT \"Model\", \"Brand\", \"YearOfProduction\", \"PricePerHour\"
+    FROM public.\"Car\"
+    LEFT JOIN \"Segment\" ON \"Segment\".\"SegmentID\" = \"Car\".\"SegmentID\"
+    WHERE (\"Insurance\" <> \'False\' AND \"Diagnostics\" <> \'False\')
+    AND \"CarID\" NOT IN (SELECT \"CarID\" FROM public.\"Rental\"
+    WHERE (\"RentalDate\" <= \'{end_date}\' AND \"ReturnDate\" >= \'{start_date}\')
+    OR (\"RentalDate\" <= \'{start_date}\' AND \"ReturnDate\" >= \'{start_date}\')
+    OR (\"RentalDate\" >= \'{start_date}\' AND \"ReturnDate\" <= \'{end_date}\'))
+    AND \"Segment\".\"SegmentSign\" = {segment}""")
+    cars = db_s.cursor.fetchall()
+    return jsonify(cars)
+
 @app.route("/customer", methods=["GET"])
 def get_customer():
     email = request.args.get("email", default="%")
