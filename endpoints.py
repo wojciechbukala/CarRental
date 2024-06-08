@@ -157,7 +157,7 @@ def add_address():
         VALUES (\'{address1}\', \'{address2}\', \'{postal_code}\', \'{city}\', \'{country}\', \'{phone_number}\')
         RETURNING \"AddressID\";""")
     
-    new_id = db.cursor.fetchone()[0]
+    new_id = db_m.cursor.fetchone()[0]
 
     db_m.conn.commit()
 
@@ -212,6 +212,38 @@ def add_customer_address():
     db_m.conn.commit()
 
     return jsonify({"message": "AddressID upadated"})
+
+@app.route("/rent_a_car", methods=["POST"])
+def rent_a_car():
+    data = request.json
+    car_id = data.get("CarID")
+    user_id = data.get("UserID")
+    start_date = data.get("StartDate")
+    end_date = data.get("EndDate")
+
+    try:
+        db_m.cursor.execute("BEGIN;")
+
+        db_m.cursor.execute(f"SELECT \"Status\" FROM public.\"Car\" WHERE \"CarID\" = {car_id};")
+
+        car_status = db_m.cursor.fetchone()[0]
+
+        if car_status != 'available':
+            raise Exception("Car is not available")
+
+        db_m.cursor.execute(f"UPDATE public.\"Car\" SET \"Status\" = 'rented' WHERE \"CarID\" = {car_id};")
+
+        db_m.cursor.execute(f"""INSERT INTO public.\"Rental\"(
+        \"RentalDate\", \"ReturnDate\", \"CarID\", \"CustomerID\")
+        VALUES (\'{start_date}\', \'{end_date}\', {car_id}, {user_id});""")
+
+        db_m.conn.commit()
+
+        return jsonify({"message": "Car rented successfully", "CarID": car_id}), 200
+
+    except Exception as e:
+        db_m.conn.rollback()
+        return jsonify({"message": str(e)}), 500
 
 @app.route("/add_new_rental", methods=["POST"])
 def add_new_rental():
