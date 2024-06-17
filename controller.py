@@ -112,6 +112,20 @@ def rent_a_car(rental_start, rental_end, car_brand, car_model):
     url_rent_a_car = 'http://127.0.0.1:5000/add_new_rental'
     response2 = requests.post(url_rent_a_car, json = data_rental)
 
+
+def rent_a_car_transaction(car_id, user_id, start_date, end_date):
+    data_rental = {
+        "CarID": f"{car_id}",
+        "UserID": f"{user_id}",
+        "StartDate": f"{start_date}",
+        "EndDate": f"{end_date}"
+    }
+    
+    url_rent_a_car = 'http://127.0.0.1:5000/rent_a_car'
+    response = requests.post(url_rent_a_car, json = data_rental)
+    print(response.json())
+
+
 def get_rentals_logged_cutomer():
     url_rentals = f'http://127.0.0.1:5000/rental_by_customer_id?customer_id={logged_id}'
     response = requests.get(url_rentals)
@@ -133,7 +147,7 @@ def flag_diagnostics(new_status, car_id):
     url_flag_diagnostics = f'http://127.0.0.1:5000/update_diagnostics?new_status={new_status}&car_id={car_id}'
     response = requests.post(url_flag_diagnostics)
 
-get_available_cars_by_segment("'B'")
+#get_available_cars_by_segment("'B'")
 #get_cars_by_segment("'B'")
 #get_available_cars()
 #login("jan.kowalski@gmail.com", "jan123")
@@ -152,4 +166,5 @@ get_available_cars_by_segment("'B'")
 #register("piotr", "omiecina", "piotr.omiecina@gmail.com", "piotr123")
 #register("Wojciech", "Bukala", "wojciech_bukala@outlook.com", "wojtek123")
 #login("wojciech_bukala@outlook.com", "wojtek123")
+rent_a_car_transaction(1, 1, '2024-05-09', '2024-05-11',)
 
