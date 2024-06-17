@@ -35,28 +35,6 @@ def get_car_by_model():
     cars = db_s.cursor.fetchone()
     return jsonify(cars)
 
-# @app.route("/get_available_cars", methods=["GET"])
-# def get_available_cars():
-#     db.cursor.execute("""SELECT \"Model\", \"Brand\" FROM public.\"Car\"
-#     WHERE \"Insurance\" <> \'False\' AND \"Diagnostics\" <> \'False\'""")
-#     cars = db.cursor.fetchall()
-#     return jsonify(cars)
-
-@app.route("/get_available_cars", methods=["GET"])
-def get_available_cars():
-    start_date = request.args.get("start_date")
-    end_date = request.args.get("end_date")
-    db_s.cursor.execute(f"""SELECT \"Model\", \"Brand\", \"YearOfProduction\", \"PricePerHour\"
-    FROM public.\"Car\"
-    LEFT JOIN \"Segment\" ON \"Segment\".\"SegmentID\" = \"Car\".\"SegmentID\"
-    WHERE (\"Insurance\" <> \'False\' AND \"Diagnostics\" <> \'False\')
-    AND \"CarID\" NOT IN (SELECT \"CarID\" FROM public.\"Rental\"
-    WHERE (\"RentalDate\" <= \'{end_date}\' AND \"ReturnDate\" >= \'{start_date}\')
-    OR (\"RentalDate\" <= \'{start_date}\' AND \"ReturnDate\" >= \'{start_date}\')
-    OR (\"RentalDate\" >= \'{start_date}\' AND \"ReturnDate\" <= \'{end_date}\'))""")
-    cars = db_s.cursor.fetchall()
-    return jsonify(cars)
-
 @app.route("/cars_by_segment", methods=["GET"])
 def get_cars_by_segment():
     segment = request.args.get("segment")
@@ -67,20 +45,40 @@ def get_cars_by_segment():
     cars = db_s.cursor.fetchall()
     return jsonify(cars)
 
-@app.route("/get_available_cars_by_segment", methods=["GET"])
-def get_available_cars_by_segment():
-    start_date = request.args.get("start_date")
-    end_date = request.args.get("end_date")
+@app.route("/get_available_cars", methods=["GET"])
+def get_available_cars():
+    start_date = request.args.get("start_date", "2100-12-31")
+    end_date = request.args.get("end_date", "2000-01-01")
     segment = request.args.get("segment")
-    db_s.cursor.execute(f"""SELECT \"Model\", \"Brand\", \"YearOfProduction\", \"PricePerHour\"
+    car_brand = request.args.get("car_brand")
+    car_model = request.args.get("car_model")
+
+
+    query = """SELECT \"CarID\", \"Model\", \"Brand\", \"YearOfProduction\", \"PricePerHour\"
     FROM public.\"Car\"
     LEFT JOIN \"Segment\" ON \"Segment\".\"SegmentID\" = \"Car\".\"SegmentID\"
     WHERE (\"Insurance\" <> \'False\' AND \"Diagnostics\" <> \'False\')
-    AND \"CarID\" NOT IN (SELECT \"CarID\" FROM public.\"Rental\"
-    WHERE (\"RentalDate\" <= \'{end_date}\' AND \"ReturnDate\" >= \'{start_date}\')
-    OR (\"RentalDate\" <= \'{start_date}\' AND \"ReturnDate\" >= \'{start_date}\')
-    OR (\"RentalDate\" >= \'{start_date}\' AND \"ReturnDate\" <= \'{end_date}\'))
-    AND \"Segment\".\"SegmentSign\" = {segment}""")
+    AND \"CarID\" NOT IN (
+        SELECT \"CarID\" FROM public.\"Rental\"
+        WHERE (\"RentalDate\" <= %s AND \"ReturnDate\" >= %s)
+        OR (\"RentalDate\" <= %s AND \"ReturnDate\" >= %s)
+        OR (\"RentalDate\" >= %s AND \"ReturnDate\" <= %s)
+    )"""
+
+    parameters = [end_date, start_date, start_date, start_date, start_date, end_date]
+
+    if segment:
+        query += ' AND "Segment"."SegmentSign" = %s'
+        parameters.append(segment)
+    if car_brand:
+        query += ' AND "Brand" = %s'
+        parameters.append(car_brand)
+    if car_model:
+        query += ' AND "Model" = %s'
+        parameters.append(car_model)
+
+    db_s.cursor.execute(query, parameters)
+
     cars = db_s.cursor.fetchall()
     return jsonify(cars)
 
@@ -97,6 +95,27 @@ def get_customer():
     
     return jsonify(customer)
 
+@app.route("/login_staff", methods=["GET"])
+def login_staff():
+    email = request.args.get("email", default="%")
+    db_s.cursor.execute(f"""SELECT * FROM public.\"Staff\"
+        WHERE \"Email\" LIKE \'{email}\'""")
+    staff = db_s.cursor.fetchall()
+
+    if not staff:  # Jeśli nie znaleziono pracownika
+        return jsonify({"message": "No staff found with the specified email"}), 404
+    
+    return jsonify(staff)
+
+@app.route("/get_customers", methods=["GET"])
+def get_customers():
+    db_s.cursor.execute(f"""SELECT \"FirstName\", \"LastName\", \"Email\", 
+    \"Address\".\"Address1\", \"Address\".\"Address2\", \"Address\".\"PostalCode\", \"Address\".\"City\"
+    FROM public.\"Customer\"
+    LEFT JOIN public.\"Address\" ON \"Customer\".\"AddressID\" = \"Address\".\"AddressID\"""")
+    customers = db_s.cursor.fetchall()
+    return jsonify(customers)
+
 @app.route("/payment", methods=["GET"])
 def get_payment():
     db_s.cursor.execute(f"SELECT * FROM public.\"Payment\"")
@@ -111,8 +130,8 @@ def get_rental():
 
 @app.route("/rental_all", methods=["GET"])
 def get_all_rentals():
-    db_s.cursor.execute(f"""SELECT \"RentalID\", \"RentalDate\", \"ReturnDate\",
-    \"FirstName\", \"LastName\", \"Brand\", \"Model\"
+    db_s.cursor.execute(f"""SELECT \"RentalID\", \"RentalDate\", \"ReturnDate\", \"Rental\".\"CarID\",
+    \"Brand\", \"Model\", \"Rental\".\"CustomerID\", \"FirstName\", \"LastName\"
     FROM public.\"Rental\"
     LEFT JOIN \"Customer\" ON \"Rental\".\"CustomerID\" = \"Customer\".\"CustomerID\"
     LEFT JOIN \"Car\" ON \"Rental\".\"CarID\" = \"Car\".\"CarID\"""")
@@ -137,7 +156,7 @@ def get_segment():
 
 @app.route("/staff", methods=["GET"])
 def get_staff():
-    db_s.cursor.execute(f"SELECT * FROM public.\"Staff\"")
+    db_s.cursor.execute(f"SELECT \"FirstName\", \"LastName\", \"Email\" FROM public.\"Staff\"")
     staff = db_s.cursor.fetchall()
     return jsonify(staff)
 
@@ -213,6 +232,7 @@ def add_customer_address():
 
     return jsonify({"message": "AddressID upadated"})
 
+# transakacja wypożyczenia
 @app.route("/rent_a_car", methods=["POST"])
 def rent_a_car():
     data = request.json
@@ -240,6 +260,35 @@ def rent_a_car():
         db_m.conn.commit()
 
         return jsonify({"message": "Car rented successfully", "CarID": car_id}), 200
+
+    except Exception as e:
+        db_m.conn.rollback()
+        return jsonify({"message": str(e)}), 500
+
+
+# transakacja zwrotu
+@app.route("/return_a_car", methods=["POST"])
+def return_a_car():
+    data = request.json
+    car_id = data.get("CarID")
+
+    try:
+        db_m.cursor.execute("BEGIN;")
+
+        db_m.cursor.execute(f"SELECT \"Status\" FROM public.\"Car\" WHERE \"CarID\" = {car_id};")
+
+        car_status = db_m.cursor.fetchone()[0]
+
+        if car_status != 'rented':
+            raise Exception("Car is not rented")
+
+        db_m.cursor.execute(f"UPDATE public.\"Car\" SET \"Status\" = 'available' WHERE \"CarID\" = {car_id};")
+
+        db_m.cursor.execute(f"""DELETE FROM public.\"Rental\" WHERE \"CarID\" = {car_id};""")
+
+        db_m.conn.commit()
+
+        return jsonify({"message": "Car returned successfully", "CarID": car_id}), 200
 
     except Exception as e:
         db_m.conn.rollback()
@@ -283,6 +332,17 @@ def update_diagnostics():
     db_m.conn.commit()
 
     return jsonify({"message": "Diagnostics status updated"})
+
+@app.route("/update_status", methods=["POST"])
+def update_status():
+    new_status = request.args.get("new_status", default="True")
+    car_id = request.args.get("car_id")
+
+    db_m.cursor.execute(f"UPDATE public.\"Car\" SET \"Status\" = \'{new_status}\' WHERE \"CarID\" = {car_id}")
+
+    db_m.conn.commit()
+
+    return jsonify({"message": "Status updated"})
 
 if __name__ == "__main__":
     app.run(debug=True)
