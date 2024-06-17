@@ -5,6 +5,7 @@ from datetime import date
 # zmienne lokalne z obecnie zalogowanym użytkownikiem
 logged_id = 0
 logged_email = "None"
+staff_logged_email = "None"
 
 def md5(password):
     pass
@@ -52,9 +53,6 @@ def login(email, password):
     else:
         return 1
 
-def register_new_car():
-    url_car = 'http://127.0.0.1:5000/add_car'
-
 def register_address(email, address1, address2, postal_code, city, country, phone_number):
     
     customer_id = get_customer_by_email(email)[1][0][0]
@@ -83,40 +81,43 @@ def register_address(email, address1, address2, postal_code, city, country, phon
 
 # functions under can be used only after logging in
 
-def get_available_cars(start_date = '2100-12-31', end_date = '2000-01-01'):
-    url_get_available_cars = f'http://127.0.0.1:5000/get_available_cars?start_date={start_date}&end_date={end_date}'
-    response = requests.get(url_get_available_cars)
-    return response.json()
-
+# zwraca samochody z podanego segmentu
 def get_cars_by_segment(segment):
     url_get_cars = f'http://127.0.0.1:5000/cars_by_segment?segment={segment}'
     response = requests.get(url_get_cars)
     return response.json()
 
-def get_available_cars_by_segment(segment, start_date = '2100-12-31', end_date = '2000-01-01'):
-    url_get_available_cars_by_segment = f'http://127.0.0.1:5000/get_available_cars_by_segment?start_date={start_date}&end_date={end_date}&segment={segment}'
-    response = requests.get(url_get_available_cars_by_segment)
+
+# Zwraca dotępne samochody na podstawie podanych parametrów
+def get_available_cars(start_date = '2100-12-31', end_date = '2000-01-01', segment = None, car_brand = None, car_model = None):
+    url = 'http://127.0.0.1:5000/get_available_cars'
+
+    data = {
+        'start_date': start_date,
+        'end_date': end_date
+    }
+
+    if segment is not None:
+        data['segment'] = segment
+    if car_brand is not None:
+        data['car_brand'] = car_brand
+    if car_model is not None:
+        data['car_model'] = car_model
+
+    response = requests.get(url, params = data)
+
     return response.json()
 
-def rent_a_car(rental_start, rental_end, car_brand, car_model):
+# wypożycznie samochodu
+# pierwszy dostępny samochód z bazy o podanej marce i modelu
+# zmienia status w "Car" na rented i wpisuje rekord do tabeli "Rental"
+def rent_a_car_transaction(start_date, end_date, car_brand, car_model):
     url_get_car = f"http://127.0.0.1:5000/get_car_by_model?brand={car_brand}&model={car_model}"
     response1 = requests.get(url_get_car)
     car_id = response1.json()[0]
     data_rental = {
-        "RentalDate": f"{rental_start}",
-        "ReturnDate": f"{rental_end}",
         "CarID": f"{car_id}",
-        "CustomerID": f"{logged_id}"
-    }
-
-    url_rent_a_car = 'http://127.0.0.1:5000/add_new_rental'
-    response2 = requests.post(url_rent_a_car, json = data_rental)
-
-
-def rent_a_car_transaction(car_id, user_id, start_date, end_date):
-    data_rental = {
-        "CarID": f"{car_id}",
-        "UserID": f"{user_id}",
+        "UserID": f"{logged_id}",
         "StartDate": f"{start_date}",
         "EndDate": f"{end_date}"
     }
@@ -125,20 +126,58 @@ def rent_a_car_transaction(car_id, user_id, start_date, end_date):
     response = requests.post(url_rent_a_car, json = data_rental)
     print(response.json())
 
-
+# Zwraca wypożyczenia zalogowane użytkownika
 def get_rentals_logged_cutomer():
     url_rentals = f'http://127.0.0.1:5000/rental_by_customer_id?customer_id={logged_id}'
     response = requests.get(url_rentals)
     return response.json()
 
+# Zwraca Imię, Nazwisko i email pracowników
+def get_staff():
+    url_staff = f'http://127.0.0.1:5000/staff'
+    response = requests.get(url_staff)
+    print(response.json())
+    return response.json()
+
 # functions under can be used only by staff
 
+# logowanie pracownika tylko na podstawie emaila
+def login_staff(email):
+    url = f"http://127.0.0.1:5000//login_staff?email={email}"
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        global staff_logged_email
+        staff_logged_email = email
+        return 0
+    else:
+        return 1
+
+# zwraca wszystkie wypożyczenia
 def get_all_rentals():
     url_all_rentals = f'http://127.0.0.1:5000/rental_all'
     response = requests.get(url_all_rentals)
     return response.json()
 
+# zwraca wszystkich klientów z bazy
+def get_all_customers():
+    url_get_customers = f'http://127.0.0.1:5000/get_customers'
+    response = requests.get(url_get_customers)
+    return response.json()
+
+# transakcja zwrotu samochodu
+# car_id zwraca get_available_cars, get_all_rental, get_user_rental
+def return_a_car_transaction(car_id):
+    data_return = {
+        "CarID": f"{car_id}",
+    }
+    
+    url_return_a_car = 'http://127.0.0.1:5000/return_a_car'
+    response = requests.post(url_return_a_car, json = data_return)
+    print(response.json())
+
 # new_stauts 'True' or 'False' (do not use (0,1))
+# car_id zwraca get_available_cars, get_all_rental, get_user_rental
 def flag_insurance(new_status, car_id):
     url_flag_insurance = f'http://127.0.0.1:5000/update_insurance?new_status={new_status}&car_id={car_id}'
     response = requests.post(url_flag_insurance)
@@ -146,6 +185,10 @@ def flag_insurance(new_status, car_id):
 def flag_diagnostics(new_status, car_id):
     url_flag_diagnostics = f'http://127.0.0.1:5000/update_diagnostics?new_status={new_status}&car_id={car_id}'
     response = requests.post(url_flag_diagnostics)
+
+def flag_status(new_status, car_id):
+    url_flag_status = f'http://127.0.0.1:5000/update_status?new_status={new_status}&car_id={car_id}'
+    response = requests.post(url_flag_status)
 
 #get_available_cars_by_segment("'B'")
 #get_cars_by_segment("'B'")
@@ -158,13 +201,13 @@ def flag_diagnostics(new_status, car_id):
 #flag_diagnostics('False', 3)
 #rent_a_car('2024-05-09', '2024-05-11', 'Toyota', 'Camry')
 #rent_a_car('2024-05-12', '2024-05-14', 'Toyota', 'Camry')
-#get_rentals_logged_cutomer()
-#get_all_rentals()
-#print(logged_email)
-#print(logged_id)
 #register_address("wojciech_bukala@outlook.com", "Wittiga", "6", "53-514", "Wroclaw", "Poland", "728866324")
 #register("piotr", "omiecina", "piotr.omiecina@gmail.com", "piotr123")
 #register("Wojciech", "Bukala", "wojciech_bukala@outlook.com", "wojtek123")
 #login("wojciech_bukala@outlook.com", "wojtek123")
-rent_a_car_transaction(1, 1, '2024-05-09', '2024-05-11',)
+#rent_a_car_transaction('2024-05-09', '2024-05-11', 'Toyota', 'Camry')
+#get_available_cars(start_date = '2100-12-31', end_date = '2000-01-01', car_model = 'Camry')
+#flag_status('available', 6)
+#print(return_a_car_transaction(1))
+#login_staff("wojciech_bukala@outlook.com")
 
