@@ -84,8 +84,8 @@ def get_available_cars():
 def get_customer():
     email = request.args.get("email", default="%")
     password = request.args.get("password", default="%")
-    db_s.cursor.execute(f"""SELECT * FROM public.\"Customer\"
-        WHERE \"Email\" LIKE \'{email}\' AND \"Password\" LIKE \'{password}\'""")
+    db_s.cursor.execute("""SELECT * FROM public.\"Customer\"
+        WHERE \"Email\" LIKE %s AND \"Password\" LIKE %s""", email, password)
     customer = db_s.cursor.fetchall()
 
     if not customer:  # Jeśli nie znaleziono customera
@@ -96,8 +96,8 @@ def get_customer():
 @app.route("/login_staff", methods=["GET"])
 def login_staff():
     email = request.args.get("email", default="%")
-    db_s.cursor.execute(f"""SELECT * FROM public.\"Staff\"
-        WHERE \"Email\" LIKE \'{email}\'""")
+    db_s.cursor.execute("""SELECT * FROM public.\"Staff\"
+        WHERE \"Email\" LIKE \'%s\'""", email)
     staff = db_s.cursor.fetchall()
 
     if not staff:  # Jeśli nie znaleziono pracownika
@@ -139,10 +139,10 @@ def get_all_rentals():
 @app.route("/rental_by_customer_id", methods=["GET"])
 def get_rental_by_cutomer_id():
     customer_id = request.args.get("customer_id")
-    db_s.cursor.execute(f"""SELECT \"RentalDate\", \"ReturnDate\", \"Brand\", \"Model\"
+    db_s.cursor.execute("""SELECT \"RentalDate\", \"ReturnDate\", \"Brand\", \"Model\"
 	FROM public.\"Rental\"
 	LEFT JOIN public.\"Car\" ON \"Car\".\"CarID\" = \"Rental\".\"CarID\" 
-    WHERE \"CustomerID\"={customer_id}""")
+    WHERE \"CustomerID\"=%s""", customer_id)
     rental = db_s.cursor.fetchall()
     return jsonify(rental)
 
@@ -210,9 +210,9 @@ def add_customer():
     address_id = data.get("AddressID")
     create_date = data.get("CreateDate")
 
-    db_m.cursor.execute(f"""INSERT INTO public.\"Customer\"(
+    db_m.cursor.execute("""INSERT INTO public.\"Customer\"(
         \"FirstName\", \"LastName\", \"Email\", \"Password\", \"CreateDate\")
-        VALUES (\'{first_name}\', \'{last_name}\', \'{email}\', \'{password}\', \'{create_date}\');""")
+        VALUES (%s, %s, %s, %s, %s);""", (first_name, last_name, email, password, create_date))
 
     db_m.conn.commit()
 
@@ -224,7 +224,7 @@ def add_customer_address():
     address_id = data.get("AddressID")
     customer_id = request.args.get("customer_id")
 
-    db_m.cursor.execute(f"UPDATE public.\"Customer\" SET \"AddressID\" = {address_id} WHERE \"CustomerID\" = {customer_id}")
+    db_m.cursor.execute("UPDATE public.\"Customer\" SET \"AddressID\" = %s WHERE \"CustomerID\" = %s", (address_id, customer_id))
 
     db_m.conn.commit()
 
@@ -249,11 +249,11 @@ def rent_a_car():
         if car_status != 'available':
             raise Exception("Car is not available")
 
-        db_m.cursor.execute(f"UPDATE public.\"Car\" SET \"Status\" = 'rented' WHERE \"CarID\" = {car_id};")
+        db_m.cursor.execute("UPDATE public.\"Car\" SET \"Status\" = 'rented' WHERE \"CarID\" = %s;", car_id)
 
-        db_m.cursor.execute(f"""INSERT INTO public.\"Rental\"(
+        db_m.cursor.execute("""INSERT INTO public.\"Rental\"(
         \"RentalDate\", \"ReturnDate\", \"CarID\", \"CustomerID\")
-        VALUES (\'{start_date}\', \'{end_date}\', {car_id}, {user_id});""")
+        VALUES (%s, %s, %s, %s);""", (start_date, end_date, car_id, user_id))
 
         db_m.conn.commit()
 
