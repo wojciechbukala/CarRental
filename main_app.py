@@ -8,6 +8,7 @@ from interface_customer import *
 from interface_staff import *
 from logreg import *
 import sys
+import ast
 from rentCarBtn import *
 from rentalDetailsWindow import *
 
@@ -18,10 +19,19 @@ from rentalDetailsWindow import *
 #         self.ui.setupUi(self)
         # self.ui.moreClientsBtn.clicked(lambda: moreClients())
 class Staff_Dashboard(QMainWindow):
-    def __init__(self, parent=None):
+    def __init__(self, email, parent=None):
         super().__init__(parent)
-        self.ui = Ui_MainWindow_staff()
+        self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.customers = get_all_customers()
+        self.rentals = get_all_rentals()
+    #     self.fillRentalTables()
+    # def fillRentalTables(self):
+    #     self.addCusomer(car, row)
+    #     self.addModel(car, row)
+    #     self.addYear(car, row)
+    #     self.addPrice(car, row)
+    #     self.addRentBtn(car, row)
 
 class Customer_Dashboard(QMainWindow):
     def __init__( self, email, parent=None ):
@@ -34,6 +44,7 @@ class Customer_Dashboard(QMainWindow):
         self.ui.customer_name.setText(self.customer_data[1])
         self.availableCars = get_available_cars()
         self.fillCarsTable()
+        self.ui.searchInput.setPlaceholderText("brand: desired_brand, model: desired_model, segment: desired_segment")
         # print("Response:")
         # print(self.availableCars)
     def fillCarsTable(self):
@@ -55,14 +66,14 @@ class Customer_Dashboard(QMainWindow):
         self.tmpBrand.setText(car[1])
         self.ui.gridLayout.addWidget(self.tmpBrand, row, 0, 1, 1)
 
-    def addModel(self, car, row):
+    def addModel(self, car, row): 
         self.tmpModel = QLabel(self.ui.frame_6)
-        self.tmpModel.setText(car[0])
+        self.tmpModel.setText(car[2])
         self.ui.gridLayout.addWidget(self.tmpModel, row, 1, 1, 1)
 
     def addYear(self, car, row):
         self.tmpYear = QLabel(self.ui.frame_6)
-        year = car[2].split(" ")[3]
+        year = car[3].split(" ")[3]
         self.tmpYear.setText(year)
         self.ui.gridLayout.addWidget(self.tmpYear, row, 2, 1, 1)
 
@@ -88,9 +99,9 @@ class Customer_Dashboard(QMainWindow):
         self.ui.gridLayout.addWidget(self.tmpBtn, row, 4, 1, 1)
         
     def on_startDate_select(self, date):    
-        self.ui.startDateLabel.setText(date.toString("dd.MM.yyyy"))
+        self.ui.startDateLabel.setText(date.toString('dd-MM-yyyy'))
     def on_endDate_select(self, date):
-        self.ui.endDateLabel.setText(date.toString("dd.MM.yyyy"))
+        self.ui.endDateLabel.setText(date.toString('dd-MM-yyyy'))
 
     def on_startDateBtn_pressed(self):
         self.calendar = QCalendarWidget()
@@ -103,6 +114,19 @@ class Customer_Dashboard(QMainWindow):
         self.calendar.clicked.connect(self.on_endDate_select)
         self.calendar.clicked.connect(self.calendar.close)
         self.calendar.show()
+    
+    def on_searchBtn_pressed(self):
+        keys = ["segment", "brand", "model"]
+        searchInput = self.ui.searchInput.text()
+        print(f'search input: {searchInput}')
+        startDate = self.ui.startDateLabel.text()
+        endDate = self.ui.endDateLabel.text()
+        searchDict = self.parse(searchInput)
+        for key in keys:
+            if key not in searchDict:
+                searchDict[key] = None
+        self.availableCars = get_available_cars(startDate, endDate, searchDict["segment"], searchDict["brand"], searchDict["model"])
+
 
     def on_menuBtn_pressed(self):
         if(self.ui.leftMenu.isVisible()):
@@ -115,27 +139,61 @@ class Customer_Dashboard(QMainWindow):
         else:
             self.ui.profileMenu.show()
 
+    def parse(self, searchInput):
+        searchInput = "segment: B, brand: toyota, model: auris"
+        pairs = searchInput.split(",")
+        dict = {}
+        for pair in pairs:
+            key,val = pair.split(":")
+            key = key.strip()
+            val = val.strip()
+            dict[key] = val
+        return dict
+
 class LoginRegister(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.ui = Ui_Form() 
         self.ui.setupUi(self)
+        self.staffLoginFlag = False
 
     def on_staffLoginBtn_toggled(self, staffFlag):
         self.staffLoginFlag = staffFlag
         if staffFlag:
             self.ui.reg.hide()
             self.ui.widget_2.hide()
+            self.ui.lineEdit_2.hide()
+            self.ui.label_8.hide()
             self.ui.label.setText("STAFF LOGIN")
+            self.ui.loginBtn.clicked.connect(self.on_loginBtn_pressed_staff)
+            
         else:
             self.ui.reg.show()
             self.ui.widget_2.show()
+            self.ui.lineEdit_2.show()
+            self.ui.label_8.show()
             self.ui.label.setText("LOGIN")
+            self.ui.loginBtn.clicked.connect(self.on_loginBtn_pressed)
+            self.ui.loginBtn.clicked.disconnect(self.on_loginBtn_pressed_staff)
+    def on_loginBtn_pressed_staff(self):
+        email = self.ui.lineEdit.text()
+        if(email != ""):
+            login_status = login_staff(email)
+            if login_status == 0:
+                self.hide()
+                self.window = Staff_Dashboard(email)
+                self.window.show()
+                self.ui.lineEdit_2.setText("")
+                self.ui.lineEdit.setText("")
+            else:
+                print("Login failed!")
+                pass
+        else:
+            print("No email or password!")
     def on_loginBtn_pressed(self):
-        # TO DO: implement staff login based on the status of staffLoginFlag
         password = self.ui.lineEdit_2.text()
         email = self.ui.lineEdit.text()
-        if(password != "" and email != ""):
+        if(password != "" and email != "" and not self.staffLoginFlag):
             login_status = login(email, password)
             if login_status == 0:
                 self.hide()
@@ -145,8 +203,6 @@ class LoginRegister(QWidget):
                 self.ui.lineEdit.setText("")
             else:
                 print("Login failed!")
-        else:
-            print("No email or password!")
 
     def on_createAccountBtn_pressed(self):
         firstname = self.ui.lineEdit_7.text()
