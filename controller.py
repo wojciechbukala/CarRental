@@ -174,7 +174,7 @@ def return_a_car_transaction(car_id):
     
     url_return_a_car = 'http://127.0.0.1:5000/return_a_car'
     response = requests.post(url_return_a_car, json = data_return)
-    print(response.json())
+    return response.json()
 
 # new_stauts 'True' or 'False' (do not use (0,1))
 # car_id zwraca get_available_cars, get_all_rental, get_user_rental
@@ -210,4 +210,21 @@ def flag_status(new_status, car_id):
 #flag_status('available', 6)
 #print(return_a_car_transaction(1))
 #login_staff("wojciech_bukala@outlook.com")
+#print(get_available_cars(start_date = '2024-04-10', end_date = '2024-04-12', car_model = 'Camry'))
 
+
+#test 1
+# login("wojciech_bukala@outlook.com", "wojtek123")
+# rent_a_car_transaction('2024-05-09', '2024-05-11', 'Hyundai', 'Tucson')
+# print(get_available_cars(start_date = '2024-05-10', end_date = '2024-05-12', car_model= 'Tucson'))
+# print(get_available_cars(start_date = '2024-05-10', end_date = '2024-05-12', car_brand = 'Hyundai', car_model= 'Tucson'))
+# print(get_available_cars(start_date = '2024-05-10', end_date = '2024-05-12', car_model= 'Tucson'))
+# print(get_available_cars(start_date = '2024-05-10', end_date = '2024-05-12', segment = 'F',car_brand = 'Hyundai', car_model= 'Tucson'))
+
+#test 2
+# login("wojciech_bukala@outlook.com", "wojtek123")
+# print(return_a_car_transaction(7))
+# print(get_available_cars(start_date = '2024-05-10', end_date = '2024-05-12', car_model= 'Tucson'))
+# print(get_available_cars(start_date = '2024-05-10', end_date = '2024-05-12', car_brand = 'Hyundai', car_model= 'Tucson'))
+# print(get_available_cars(start_date = '2024-05-10', end_date = '2024-05-12', car_model= 'Tucson'))
+# print(get_available_cars(start_date = '2024-05-10', end_date = '2024-05-12', segment = 'F',car_brand = 'Hyundai', car_model= 'Tucson'))
