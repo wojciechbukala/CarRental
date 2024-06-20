@@ -47,8 +47,8 @@ def get_cars_by_segment():
 
 @app.route("/get_available_cars", methods=["GET"])
 def get_available_cars():
-    start_date = request.args.get("start_date", "2100-12-31")
-    end_date = request.args.get("end_date", "2000-01-01")
+    start_date = request.args.get("start_date")
+    end_date = request.args.get("end_date")
     segment = request.args.get("segment")
     car_brand = request.args.get("car_brand")
     car_model = request.args.get("car_model")
@@ -60,12 +60,10 @@ def get_available_cars():
     WHERE (\"Insurance\" <> \'False\' AND \"Diagnostics\" <> \'False\')
     AND \"CarID\" NOT IN (
         SELECT \"CarID\" FROM public.\"Rental\"
-        WHERE (\"RentalDate\" <= %s AND \"ReturnDate\" >= %s)
-        OR (\"RentalDate\" <= %s AND \"ReturnDate\" >= %s)
-        OR (\"RentalDate\" >= %s AND \"ReturnDate\" <= %s)
+        WHERE (%s <= "ReturnDate" AND %s >= "RentalDate")
     )"""
 
-    parameters = [end_date, start_date, start_date, start_date, start_date, end_date]
+    parameters = [start_date, end_date]
 
     if segment:
         query += ' AND "Segment"."SegmentSign" = %s'
