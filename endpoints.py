@@ -85,7 +85,7 @@ def get_customer():
     email = request.args.get("email", default="%")
     password = request.args.get("password", default="%")
     db_s.cursor.execute("""SELECT * FROM public.\"Customer\"
-        WHERE \"Email\" LIKE %s AND \"Password\" LIKE %s""", email, password)
+        WHERE \"Email\" LIKE %s AND \"Password\" LIKE %s""", (email, password))
     customer = db_s.cursor.fetchall()
 
     if not customer:  # Jeśli nie znaleziono customera
@@ -169,10 +169,10 @@ def add_address():
     country = data.get("Country")
     phone_number = data.get("PhoneNumber")
 
-    db_m.cursor.execute(f"""INSERT INTO public.\"Address\"(
+    db_m.cursor.execute("""INSERT INTO public.\"Address\"(
         \"Address1\", \"Address2\", \"PostalCode\", \"City\", \"Country\", \"PhoneNumber\")
-        VALUES (\'{address1}\', \'{address2}\', \'{postal_code}\', \'{city}\', \'{country}\', \'{phone_number}\')
-        RETURNING \"AddressID\";""")
+        VALUES (%s, %s, %s, %s, %s, %s)
+        RETURNING \"AddressID\";""", (address1, address2, postal_code, city, country, phone_number))
     
     new_id = db_m.cursor.fetchone()[0]
 
@@ -314,7 +314,7 @@ def update_insurance():
     new_status = request.args.get("new_status", default="True")
     car_id = request.args.get("car_id")
 
-    db_m.cursor.execute(f"UPDATE public.\"Car\" SET \"Insurance\" = \'{new_status}\' WHERE \"CarID\" = {car_id}")
+    db_m.cursor.execute("UPDATE public.\"Car\" SET \"Insurance\" = %s WHERE \"CarID\" = %s", (new_status, car_id))
 
     db_m.conn.commit()
 

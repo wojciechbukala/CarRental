@@ -230,5 +230,5 @@ def flag_status(new_status, car_id):
 # print(get_available_cars(start_date = '2024-05-10', end_date = '2024-05-12', segment = 'F',car_brand = 'Hyundai', car_model= 'Tucson'))
 
 # sql injection test
-register("Piotr", "Nowak", "piotr.nowak@gmail.com", "pnowak1231; (DROP TABLE public.\"Staff\");")
+#register("Piotr", "Nowak", "piotr.nowak@gmail.com", "pnowak1231; (DROP TABLE public.\"Staff\");")
 #register_address("piotr.nowak@gmail.com", "Mazowiecka", "1", "00-000", "Warszawa", "Polska", "1); DROP TABLE \"Staff\";")
