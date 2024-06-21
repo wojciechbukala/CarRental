@@ -35,13 +35,12 @@ def get_car_by_model():
     cars = db_s.cursor.fetchone()
     return jsonify(cars)
 
-@app.route("/cars_by_segment", methods=["GET"])
-def get_cars_by_segment():
-    segment = request.args.get("segment")
-    db_s.cursor.execute(f"""SELECT \"Brand\", \"Model\", \"YearOfProduction\", \"Color\"
+@app.route("/cars_by_id", methods=["GET"])
+def get_cars_by_id():
+    id = request.args.get("id")
+    db_s.cursor.execute(f"""SELECT *
     FROM public.\"Car\"
-    LEFT JOIN \"Segment\" ON \"Car\".\"SegmentID\" = \"Segment\".\"SegmentID\"
-    WHERE \"Segment\".\"SegmentSign\" = {segment}""")
+    WHERE \"CarID\" = {id}""")
     cars = db_s.cursor.fetchall()
     return jsonify(cars)
 

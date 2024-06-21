@@ -3,6 +3,7 @@ from controller import *
 from datetime import datetime
 class rentalDetailsWindow(QtWidgets.QWidget):
     def __init__(self,brand, model, parent=None):
+        print("opened window")
         super().__init__(parent)
         self.brand = brand
         self.model = model
@@ -98,7 +99,7 @@ class rentalDetailsWindow(QtWidgets.QWidget):
         self.startDate = date.toString("dd.MM.yyyy")
         self.label_3.setText(date.toString("dd.MM.yyyy"))
     def on_rentCarBtn_pressed(self):
-        rent_a_car(datetime.strptime(self.startDate, '%d.%m.%Y'), datetime.strptime(self.endDate, '%d.%m.%Y'), self.brand, self.model)
+        rent_a_car_transaction(datetime.strptime(self.startDate, '%d.%m.%Y'), datetime.strptime(self.endDate, '%d.%m.%Y'), self.brand, self.model)
         self.close()
     def on_pushButton_pressed(self):
         self.close()

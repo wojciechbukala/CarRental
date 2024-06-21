@@ -81,9 +81,9 @@ def register_address(email, address1, address2, postal_code, city, country, phon
 
 # functions under can be used only after logging in
 
-# zwraca samochody z podanego segmentu
-def get_cars_by_segment(segment):
-    url_get_cars = f'http://127.0.0.1:5000/cars_by_segment?segment={segment}'
+# zwraca samochody z podanym id
+def get_cars_by_id(id):
+    url_get_cars = f'http://127.0.0.1:5000/cars_by_id?id={id}'
     response = requests.get(url_get_cars)
     return response.json()
 
@@ -213,7 +213,7 @@ def flag_status(new_status, car_id):
 #print(get_available_cars(start_date = '2024-04-10', end_date = '2024-04-12', car_model = 'Camry'))
 
 
-#test 1
+# test 1
 # login("wojciech_bukala@outlook.com", "wojtek123")
 # rent_a_car_transaction('2024-05-09', '2024-05-11', 'Hyundai', 'Tucson')
 # print(get_available_cars(start_date = '2024-05-10', end_date = '2024-05-12', car_model= 'Tucson'))

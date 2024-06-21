@@ -11,8 +11,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from controller import *
 from addresDialog import *
-from PyQt5.QtCore import Qt
-# from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 

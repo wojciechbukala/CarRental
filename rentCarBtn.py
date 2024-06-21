@@ -10,5 +10,6 @@ class rentCarBtn(QtWidgets.QPushButton):
         self.pressed.connect(self.on_rentCarBtn_pressed)
 
     def on_rentCarBtn_pressed(self):
+        print("renting...")
         self.rentWindow = rentalDetailsWindow(self.brand, self.model)
         self.rentWindow.show()
