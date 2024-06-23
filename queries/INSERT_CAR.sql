@@ -9,3 +9,6 @@ INSERT INTO public."Car"(
 	(7, 'Hyundai', 'Tucson', '2023-01-01', 'Grey', TRUE, TRUE, 6),
 	(8, 'Toyota', 'RAV4', '2022-01-01', 'White', TRUE, TRUE, 6),
 	(9, 'Peugeot', 'Partner', '2024-01-01', 'Black', TRUE, TRUE, 7);
+
+ALTER TABLE public."Car"
+ADD COLUMN "Status" VARCHAR(20) DEFAULT 'available';
