@@ -228,3 +228,12 @@ def flag_status(new_status, car_id):
 # print(get_available_cars(start_date = '2024-05-10', end_date = '2024-05-12', car_brand = 'Hyundai', car_model= 'Tucson'))
 # print(get_available_cars(start_date = '2024-05-10', end_date = '2024-05-12', car_model= 'Tucson'))
 # print(get_available_cars(start_date = '2024-05-10', end_date = '2024-05-12', segment = 'F',car_brand = 'Hyundai', car_model= 'Tucson'))
+
+
+# sql injection
+# register("John; DROP TABLE public.\"Customer\"; --", "Bukala", "wojciech_bukala@outlook.com", "wojtek123")
+# register("John", "Bukala", "wojciech_bukala@outlook.com", "wojtek123; DROP TABLE public.\"Customer\"; --")
+# get_available_cars(start_date = '2100-12-31', end_date = '2000-01-01', car_model = 'Camry; DROP TABLE public.\"Car\"; --')
+# rent_a_car_transaction('2024-05-09', '2024-05-11', 'Toyota; DROP TABLE public.\"Car\"; --', 'Camry')
+# return_a_car_transaction("DROP TABLE public.\"Rantal\"; --")
+

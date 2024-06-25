@@ -25,22 +25,32 @@ def get_cars():
     cars = db_s.cursor.fetchall()
     return jsonify(cars)
 
+@app.route("/cars_by_id", methods=["GET"])
+def get_cars_by_id():
+    id = request.args.get("id")
+    db_s.cursor.execute("""SELECT *
+    FROM public.\"Car\"
+    WHERE \"CarID\" = %s""", (id, ))
+    cars = db_s.cursor.fetchall()
+    return jsonify(cars)
+
 @app.route("/get_car_by_model", methods=["GET"])
 def get_car_by_model():
     brand = request.args.get("brand")
     model = request.args.get("model")
-    db_s.cursor.execute(f"""SELECT * FROM public.\"Car\" 
-    WHERE \"Brand\" = \'{brand}\' AND \"Model\" = \'{model}\' 
-    LIMIT 1;""")
+    db_s.cursor.execute("""SELECT * FROM public.\"Car\" 
+    WHERE \"Brand\" = %s AND \"Model\" = %s
+    LIMIT 1;""", (brand, model))
     cars = db_s.cursor.fetchone()
     return jsonify(cars)
 
-@app.route("/cars_by_id", methods=["GET"])
-def get_cars_by_id():
-    id = request.args.get("id")
-    db_s.cursor.execute(f"""SELECT *
+@app.route("/cars_by_segment", methods=["GET"])
+def get_cars_by_segment():
+    segment = request.args.get("segment")
+    db_s.cursor.execute("""SELECT \"Brand\", \"Model\", \"YearOfProduction\", \"Color\"
     FROM public.\"Car\"
-    WHERE \"CarID\" = {id}""")
+    LEFT JOIN \"Segment\" ON \"Car\".\"SegmentID\" = \"Segment\".\"SegmentID\"
+    WHERE \"Segment\".\"SegmentSign\" = %s""", (segment, ))
     cars = db_s.cursor.fetchall()
     return jsonify(cars)
 
@@ -83,8 +93,8 @@ def get_available_cars():
 def get_customer():
     email = request.args.get("email", default="%")
     password = request.args.get("password", default="%")
-    db_s.cursor.execute(f"""SELECT * FROM public.\"Customer\"
-        WHERE \"Email\" LIKE \'{email}\' AND \"Password\" LIKE \'{password}\'""")
+    db_s.cursor.execute("""SELECT * FROM public.\"Customer\"
+        WHERE \"Email\" LIKE %s AND \"Password\" LIKE %s""", (email, password))
     customer = db_s.cursor.fetchall()
 
     if not customer:  # Jeśli nie znaleziono customera
@@ -95,8 +105,8 @@ def get_customer():
 @app.route("/login_staff", methods=["GET"])
 def login_staff():
     email = request.args.get("email", default="%")
-    db_s.cursor.execute(f"""SELECT * FROM public.\"Staff\"
-        WHERE \"Email\" LIKE \'{email}\'""")
+    db_s.cursor.execute("""SELECT * FROM public.\"Staff\"
+        WHERE \"Email\" LIKE %s""", (email, ))
     staff = db_s.cursor.fetchall()
 
     if not staff:  # Jeśli nie znaleziono pracownika
@@ -138,10 +148,10 @@ def get_all_rentals():
 @app.route("/rental_by_customer_id", methods=["GET"])
 def get_rental_by_cutomer_id():
     customer_id = request.args.get("customer_id")
-    db_s.cursor.execute(f"""SELECT \"RentalDate\", \"ReturnDate\", \"Brand\", \"Model\"
+    db_s.cursor.execute("""SELECT \"RentalDate\", \"ReturnDate\", \"Brand\", \"Model\"
 	FROM public.\"Rental\"
 	LEFT JOIN public.\"Car\" ON \"Car\".\"CarID\" = \"Rental\".\"CarID\" 
-    WHERE \"CustomerID\"={customer_id}""")
+    WHERE \"CustomerID\"=%s""", customer_id)
     rental = db_s.cursor.fetchall()
     return jsonify(rental)
 
@@ -168,10 +178,10 @@ def add_address():
     country = data.get("Country")
     phone_number = data.get("PhoneNumber")
 
-    db_m.cursor.execute(f"""INSERT INTO public.\"Address\"(
+    db_m.cursor.execute("""INSERT INTO public.\"Address\"(
         \"Address1\", \"Address2\", \"PostalCode\", \"City\", \"Country\", \"PhoneNumber\")
-        VALUES (\'{address1}\', \'{address2}\', \'{postal_code}\', \'{city}\', \'{country}\', \'{phone_number}\')
-        RETURNING \"AddressID\";""")
+        VALUES (%s, %s, %s, %s, %s, %s)
+        RETURNING \"AddressID\";""", (address1, address2, postal_code, city, country, phone_number))
     
     new_id = db_m.cursor.fetchone()[0]
 
@@ -209,9 +219,9 @@ def add_customer():
     address_id = data.get("AddressID")
     create_date = data.get("CreateDate")
 
-    db_m.cursor.execute(f"""INSERT INTO public.\"Customer\"(
+    db_m.cursor.execute("""INSERT INTO public.\"Customer\"(
         \"FirstName\", \"LastName\", \"Email\", \"Password\", \"CreateDate\")
-        VALUES (\'{first_name}\', \'{last_name}\', \'{email}\', \'{password}\', \'{create_date}\');""")
+        VALUES (%s, %s, %s, %s, %s);""", (first_name, last_name, email, password, create_date))
 
     db_m.conn.commit()
 
@@ -223,7 +233,7 @@ def add_customer_address():
     address_id = data.get("AddressID")
     customer_id = request.args.get("customer_id")
 
-    db_m.cursor.execute(f"UPDATE public.\"Customer\" SET \"AddressID\" = {address_id} WHERE \"CustomerID\" = {customer_id}")
+    db_m.cursor.execute("UPDATE public.\"Customer\" SET \"AddressID\" = %s WHERE \"CustomerID\" = %s", (address_id, customer_id))
 
     db_m.conn.commit()
 
@@ -241,18 +251,18 @@ def rent_a_car():
     try:
         db_m.cursor.execute("BEGIN;")
 
-        db_m.cursor.execute(f"SELECT \"Status\" FROM public.\"Car\" WHERE \"CarID\" = {car_id};")
+        db_m.cursor.execute("SELECT \"Status\" FROM public.\"Car\" WHERE \"CarID\" = %s;", (car_id, ))
 
         car_status = db_m.cursor.fetchone()[0]
 
         if car_status != 'available':
             raise Exception("Car is not available")
 
-        db_m.cursor.execute(f"UPDATE public.\"Car\" SET \"Status\" = 'rented' WHERE \"CarID\" = {car_id};")
+        db_m.cursor.execute("UPDATE public.\"Car\" SET \"Status\" = 'rented' WHERE \"CarID\" = %s;", car_id)
 
-        db_m.cursor.execute(f"""INSERT INTO public.\"Rental\"(
+        db_m.cursor.execute("""INSERT INTO public.\"Rental\"(
         \"RentalDate\", \"ReturnDate\", \"CarID\", \"CustomerID\")
-        VALUES (\'{start_date}\', \'{end_date}\', {car_id}, {user_id});""")
+        VALUES (%s, %s, %s, %s);""", (start_date, end_date, car_id, user_id))
 
         db_m.conn.commit()
 
@@ -272,16 +282,16 @@ def return_a_car():
     try:
         db_m.cursor.execute("BEGIN;")
 
-        db_m.cursor.execute(f"SELECT \"Status\" FROM public.\"Car\" WHERE \"CarID\" = {car_id};")
+        db_m.cursor.execute("SELECT \"Status\" FROM public.\"Car\" WHERE \"CarID\" = %s;", (car_id, ))
 
         car_status = db_m.cursor.fetchone()[0]
 
         if car_status != 'rented':
             raise Exception("Car is not rented")
 
-        db_m.cursor.execute(f"UPDATE public.\"Car\" SET \"Status\" = 'available' WHERE \"CarID\" = {car_id};")
+        db_m.cursor.execute("UPDATE public.\"Car\" SET \"Status\" = 'available' WHERE \"CarID\" = %s;", (car_id, ))
 
-        db_m.cursor.execute(f"""DELETE FROM public.\"Rental\" WHERE \"CarID\" = {car_id};""")
+        db_m.cursor.execute("""DELETE FROM public.\"Rental\" WHERE \"CarID\" = %s;""", (car_id, ))
 
         db_m.conn.commit()
 
@@ -300,9 +310,9 @@ def add_new_rental():
     car_id = data.get("CarID")
     customer_id = data.get("CustomerID")
 
-    db_m.cursor.execute(f"""INSERT INTO public.\"Rental\"(
+    db_m.cursor.execute("""INSERT INTO public.\"Rental\"(
 	\"RentalDate\", \"ReturnDate\", \"CarID\", \"CustomerID\")
-	VALUES (\'{rental_date}\', \'{return_date}\', {car_id}, {customer_id});""")
+	VALUES (%s, %s, %s, %s);""", (rental_date, return_date, car_id, customer_id))
 
     db_m.conn.commit()
 
@@ -313,7 +323,7 @@ def update_insurance():
     new_status = request.args.get("new_status", default="True")
     car_id = request.args.get("car_id")
 
-    db_m.cursor.execute(f"UPDATE public.\"Car\" SET \"Insurance\" = \'{new_status}\' WHERE \"CarID\" = {car_id}")
+    db_m.cursor.execute("UPDATE public.\"Car\" SET \"Insurance\" = %s WHERE \"CarID\" = %s", (new_status, car_id))
 
     db_m.conn.commit()
 
@@ -324,7 +334,7 @@ def update_diagnostics():
     new_status = request.args.get("new_status", default="True")
     car_id = request.args.get("car_id")
 
-    db_m.cursor.execute(f"UPDATE public.\"Car\" SET \"Diagnostics\" = \'{new_status}\' WHERE \"CarID\" = {car_id}")
+    db_m.cursor.execute("UPDATE public.\"Car\" SET \"Diagnostics\" = %s WHERE \"CarID\" = %s", (new_status, car_id))
 
     db_m.conn.commit()
 
@@ -335,7 +345,7 @@ def update_status():
     new_status = request.args.get("new_status", default="True")
     car_id = request.args.get("car_id")
 
-    db_m.cursor.execute(f"UPDATE public.\"Car\" SET \"Status\" = \'{new_status}\' WHERE \"CarID\" = {car_id}")
+    db_m.cursor.execute("UPDATE public.\"Car\" SET \"Status\" = %s WHERE \"CarID\" = %s", (new_status, car_id))
 
     db_m.conn.commit()
 
@@ -343,5 +353,7 @@ def update_status():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
 
 
